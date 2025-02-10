@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Daily Entry</title>
+  <style>
+    /* Body and container styling */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    /* Form styling */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .form-group input[type="time"],
+    .form-group input[type="number"],
+    .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+    }
+    .checkbox-group input {
+      margin-right: 10px;
+    }
+    button {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .back-link {
+      display: block;
+      margin-bottom: 20px;
+      text-decoration: none;
+      color: #007BFF;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">&larr; Back to Calendar</a>
+    <h1>Daily Entry</h1>
+    <form id="dailyForm">
+      <!-- 1. Wake Up Time -->
+      <div class="form-group">
+        <label for="wakeUpTime">Wake Up Time</label>
+        <input type="time" id="wakeUpTime" name="wakeUpTime">
+      </div>
+      <!-- 2. Morning Run (Checkbox) -->
+      <div class="form-group checkbox-group">
+        <input type="checkbox" id="morningRun" name="morningRun">
+        <label for="morningRun">Morning Run</label>
+      </div>
+      <!-- 3. Breakfast (Checkbox) -->
+      <div class="form-group checkbox-group">
+        <input type="checkbox" id="breakfast" name="breakfast">
+        <label for="breakfast">Breakfast</label>
+      </div>
+      <!-- 4. Morning Frontend Activity (Text Area) -->
+      <div class="form-group">
+        <label for="morningFrontend">Morning Frontend Activity</label>
+        <textarea id="morningFrontend" name="morningFrontend"></textarea>
+      </div>
+      <!-- 5. Bath Time -->
+      <div class="form-group">
+        <label for="bathTime">Bath Time</label>
+        <input type="time" id="bathTime" name="bathTime">
+      </div>
+      <!-- 6. Day Activity/Office Work -->
+      <div class="form-group">
+        <label for="dayActivity">Day Activity / Office Work</label>
+        <textarea id="dayActivity" name="dayActivity"></textarea>
+      </div>
+      <!-- 7. Evening Workout -->
+      <div class="form-group">
+        <label for="eveningWorkout">Evening Workout</label>
+        <textarea id="eveningWorkout" name="eveningWorkout"></textarea>
+      </div>
+      <!-- 8. Evening Activity -->
+      <div class="form-group">
+        <label for="eveningActivity">Evening Activity</label>
+        <textarea id="eveningActivity" name="eveningActivity"></textarea>
+      </div>
+      <!-- 9. Night Activity -->
+      <div class="form-group">
+        <label for="nightActivity">Night Activity</label>
+        <textarea id="nightActivity" name="nightActivity"></textarea>
+      </div>
+      <!-- 10. Late Night Activity -->
+      <div class="form-group">
+        <label for="lateNightActivity">Late Night Activity</label>
+        <textarea id="lateNightActivity" name="lateNightActivity"></textarea>
+      </div>
+      <!-- 11. Sleep Time -->
+      <div class="form-group">
+        <label for="sleepTime">Sleep Time</label>
+        <input type="time" id="sleepTime" name="sleepTime">
+      </div>
+      <!-- 12. Hours Slept -->
+      <div class="form-group">
+        <label for="hoursSlept">Hours Slept</label>
+        <input type="number" id="hoursSlept" name="hoursSlept" min="0">
+      </div>
+      <button type="submit">Save Entry</button>
+    </form>
+  </div>
+
+  <script>
+    // Read the URL parameters (month and day)
+    const urlParams = new URLSearchParams(window.location.search);
+    const month = urlParams.get('month');
+    const day = urlParams.get('day');
+
+    // Create a unique key to store/retrieve this day’s data from localStorage
+    const storageKey = `planner-2025-${month}-${day}`;
+
+    // When the page loads, check if there is saved data for this day and prefill the form
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        document.getElementById('wakeUpTime').value = data.wakeUpTime || "";
+        document.getElementById('morningRun').checked = data.morningRun || false;
+        document.getElementById('breakfast').checked = data.breakfast || false;
+        document.getElementById('morningFrontend').value = data.morningFrontend || "";
+        document.getElementById('bathTime').value = data.bathTime || "";
+        document.getElementById('dayActivity').value = data.dayActivity || "";
+        document.getElementById('eveningWorkout').value = data.eveningWorkout || "";
+        document.getElementById('eveningActivity').value = data.eveningActivity || "";
+        document.getElementById('nightActivity').value = data.nightActivity || "";
+        document.getElementById('lateNightActivity').value = data.lateNightActivity || "";
+        document.getElementById('sleepTime').value = data.sleepTime || "";
+        document.getElementById('hoursSlept').value = data.hoursSlept || "";
+      }
+    });
+
+    // When the form is submitted, save the data in localStorage
+    document.getElementById('dailyForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const data = {
+        wakeUpTime: document.getElementById('wakeUpTime').value,
+        morningRun: document.getElementById('morningRun').checked,
+        breakfast: document.getElementById('breakfast').checked,
+        morningFrontend: document.getElementById('morningFrontend').value,
+        bathTime: document.getElementById('bathTime').value,
+        dayActivity: document.getElementById('dayActivity').value,
+        eveningWorkout: document.getElementById('eveningWorkout').value,
+        eveningActivity: document.getElementById('eveningActivity').value,
+        nightActivity: document.getElementById('nightActivity').value,
+        lateNightActivity: document.getElementById('lateNightActivity').value,
+        sleepTime: document.getElementById('sleepTime').value,
+        hoursSlept: document.getElementById('hoursSlept').value
+      };
+      localStorage.setItem(storageKey, JSON.stringify(data));
+      alert("Daily entry saved!");
+    });
+  </script>
+</body>
+</html>

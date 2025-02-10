@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Planner 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet" />
+  <!-- Font Awesome for icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    integrity="sha512-Fo3rlrZj/k7ujTnHq6PCj4a9tD1R9p2k37H8v3oxEHCAsYPFbl3aM3V+cx75nuFqRw4C9GfM5Q5xW5h2QF5nKg=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <style>
+    :root {
+      --primary-font: 'Roboto', sans-serif;
+      --primary-color: #4caf50;    /* Green accent */
+      --secondary-color: #007BFF;  /* Blue accent */
+      --bg-gradient: linear-gradient(120deg, #eef2f3, #f5f7fa); /* Soft background gradient */
+      --circle-gradient: radial-gradient(circle at 30% 30%, #e0f7fa, #ffffff); /* 2nd circle background */
+      --comment-circle-bg: radial-gradient(circle at 50% 50%, #c8e6c9, #fff);  /* 3rd circle background */
+
+      --text-color: #333;
+      --light-text: #666;
+
+      --home-circle-size: 170px;  /* bigger home circles */
+      --month-detail-size: 700px; /* bigger second circle */
+      --comment-circle-size: 320px;
+
+      --transition-speed: 0.4s;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--primary-font);
+      background: var(--bg-gradient);
+      color: var(--text-color);
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #4caf50, #81c784);
+      color: #fff;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    /* ========== HOME PAGE (12 big circles) ========== */
+    .month-circles-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 20px;
+      transition: opacity var(--transition-speed);
+    }
+
+    .month-circle {
+      position: relative;
+      width: var(--home-circle-size);
+      height: var(--home-circle-size);
+      border-radius: 50%;
+      background: #ddd; /* fallback if no fill */
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .month-circle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Water fill effect using an absolutely positioned child */
+    .fill-layer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%; /* dynamic via JS */
+      background: rgba(76,175,80,0.3); /* translucent green water effect */
+      transition: height 0.4s;
+      z-index: 1;
+    }
+
+    .month-info {
+      z-index: 2; /* on top of water fill */
+      text-align: center;
+      color: var(--text-color);
+      pointer-events: none; /* so the circle as a whole is clickable */
+    }
+    .month-info .month-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .month-info .days-left {
+      font-size: 0.8rem;
+      color: var(--light-text);
+    }
+
+    /* ========== OVERLAY (behind second circle) ========== */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-speed);
+      z-index: 9;
+    }
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ========== SECOND CIRCLE (Month Detail) ========== */
+    .month-detail-circle {
+      position: fixed;
+      top: 50%;
+      right: -800px; /* start off-screen to the right */
+      transform: translateY(-50%);
+      width: var(--month-detail-size);
+      height: var(--month-detail-size);
+      border-radius: 50%;
+      background: var(--circle-gradient);
+      box-shadow: -4px 8px 30px rgba(0,0,0,0.3);
+      padding: 40px;
+      transition: right var(--transition-speed), transform 0.4s;
+      overflow: hidden; /* ensures content won't cross the circle boundary */
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+    }
+    .month-detail-circle.open {
+      right: 50px; /* animate in */
+    }
+
+    .month-detail-header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .month-detail-header h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      color: var(--text-color);
+      text-shadow: 1px 1px 2px #fff;
+    }
+
+    /* GOAL section */
+    .goal-section {
+      width: 90%;
+      margin-bottom: 1rem;
+    }
+    .goal-section label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .goal-section textarea {
+      width: 100%;
+      height: 50px;
+      resize: vertical;
+      padding: 8px;
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    /* Calendar style layout for the month detail */
+    .calendar-container {
+      width: 90%;
+      display: grid;
+      /* 8 columns: 1 for "Week X" + 7 for days-of-week headings. Up to 7 rows. */
+      grid-template-columns: 70px repeat(7, 1fr);
+      gap: 5px;
+      align-items: start;
+      justify-items: center;
+      margin-top: 10px;
+      overflow: auto; /* so we can scroll if needed */
+      flex: 1;
+    }
+
+    /* Row 1: the headings (Week label + day-of-week headings) */
+    .week-label-heading {
+      font-weight: 700;
+      color: var(--light-text);
+    }
+    .day-of-week-heading {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--light-text);
+      text-transform: uppercase;
+    }
+
+    /* Each row below for weeks */
+    .week-label {
+      font-weight: 700;
+      cursor: pointer;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--secondary-color);
+    }
+    .week-label:hover {
+      color: var(--primary-color);
+    }
+    .week-label.has-comment i {
+      color: var(--primary-color);
+      margin-left: 5px;
+    }
+
+    /* ========== Day squares with separated boxes ========== */
+    .day-square {
+      width: 70px;
+      height: 70px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      padding: 4px;
+    }
+    /* 1. Top portion: day box */
+    .day-box {
+      /* Just a container for the day link or text */
+    }
+    .day-box .day-link {
+      text-decoration: none;
+      color: var(--text-color);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    /* 2. Bottom portion: color picker box */
+    .color-box {
+      /* We place the color input here. */
+      margin-bottom: 2px;
+    }
+    .color-picker {
+      width: 20px;
+      height: 20px;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* 3. Comment dot: top-right corner */
+    .comment-dot {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      padding: 2px;
+      cursor: pointer;
+      color: #999;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .comment-dot.has-comment {
+      color: var(--primary-color);
+    }
+
+    /* ========== THIRD CIRCLE (Comment Panel) ========== */
+    .comment-circle {
+      position: fixed;
+      top: 50%;
+      right: -400px;
+      transform: translateY(-50%);
+      width: var(--comment-circle-size);
+      height: var(--comment-circle-size);
+      border-radius: 50%;
+      background: var(--comment-circle-bg);
+      box-shadow: -4px 8px 20px rgba(0,0,0,0.3);
+      padding: 20px;
+      transition: right var(--transition-speed);
+      overflow: hidden;
+      z-index: 11;
+      display: flex;
+      flex-direction: column;
+    }
+    .comment-circle.open {
+      right: calc(50px + var(--month-detail-size) + 20px);
+      /* i.e. just to the right of the second circle */
+    }
+
+    .comment-circle-header {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      text-align: center;
+      color: var(--text-color);
+      text-shadow: 1px 1px #fff;
+    }
+    .comment-textarea {
+      flex: 1;
+      resize: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    .comment-circle-buttons {
+      text-align: right;
+    }
+    .comment-circle-buttons button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    .comment-circle-buttons .save-btn {
+      background: var(--primary-color);
+      color: #fff;
+    }
+    .comment-circle-buttons .cancel-btn {
+      background: #aaa;
+      color: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .month-detail-circle {
+        width: 90vw;
+        height: 90vw;
+        right: -100vw;
+      }
+      .month-detail-circle.open {
+        right: 5vw;
+      }
+      .comment-circle.open {
+        right: 5vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Daily Planner 2025</h1>
+  </header>
+
+  <!-- HOME PAGE: 12 big circles -->
+  <div class="month-circles-container" id="homeCircles"></div>
+
+  <!-- OVERLAY (click outside to close the second circle) -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- SECOND CIRCLE: Month Detail (with calendar, goal, weeks) -->
+  <div class="month-detail-circle" id="monthDetailCircle">
+    <div class="month-detail-header">
+      <h2 id="monthDetailTitle"></h2>
+    </div>
+    <!-- GOAL section -->
+    <div class="goal-section">
+      <label for="goalTextarea">GOAL</label>
+      <textarea id="goalTextarea" placeholder="Your monthly goal..."></textarea>
+    </div>
+    <!-- Calendar container with weeks/days -->
+    <div class="calendar-container" id="calendarContainer">
+      <!-- We'll dynamically insert the heading row + week rows -->
+    </div>
+  </div>
+
+  <!-- THIRD CIRCLE: Comment Panel (for day or week) -->
+  <div class="comment-circle" id="commentCircle">
+    <div class="comment-circle-header" id="commentHeader">Comment</div>
+    <textarea class="comment-textarea" id="commentTextarea"></textarea>
+    <div class="comment-circle-buttons">
+      <button class="cancel-btn" id="cancelCommentBtn">Cancel</button>
+      <button class="save-btn" id="saveCommentBtn">Save</button>
+    </div>
+  </div>
+
+  <script>
+    /************************************************************
+     * Global references & data
+     ************************************************************/
+    const year = 2025;
+    const now = new Date(); // The real "today" for water fill logic
+
+    const homeCircles = document.getElementById("homeCircles");
+    const overlay = document.getElementById("overlay");
+    const monthDetailCircle = document.getElementById("monthDetailCircle");
+    const monthDetailTitle = document.getElementById("monthDetailTitle");
+    const goalTextarea = document.getElementById("goalTextarea");
+    const calendarContainer = document.getElementById("calendarContainer");
+
+    const commentCircle = document.getElementById("commentCircle");
+    const commentHeader = document.getElementById("commentHeader");
+    const commentTextarea = document.getElementById("commentTextarea");
+    const cancelCommentBtn = document.getElementById("cancelCommentBtn");
+    const saveCommentBtn = document.getElementById("saveCommentBtn");
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const dayOfWeekNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    let currentMonthIndex = null;
+    let currentCommentKey = "";
+    let currentCommentIcon = null;
+
+    /************************************************************
+     * 1. Build home page circles
+     ************************************************************/
+    function buildHomePageCircles() {
+      for (let m = 0; m < 12; m++) {
+        // Days in the month
+        const daysInMonth = new Date(year, m+1, 0).getDate();
+        const monthStart = new Date(year, m, 1);
+        const monthEnd = new Date(year, m, daysInMonth);
+
+        let fillPercent = 0;
+        if (now.getFullYear() < year) {
+          // Before 2025 => no fill
+          fillPercent = 0;
+        } else if (now.getFullYear() > year) {
+          // After 2025 => full fill
+          fillPercent = 100;
+        } else {
+          // We are in 2025
+          if (now < monthStart) {
+            fillPercent = 0;
+          } else if (now > monthEnd) {
+            fillPercent = 100;
+          } else {
+            // Current month
+            const dayOfMonth = now.getDate();
+            fillPercent = (dayOfMonth / daysInMonth) * 100;
+          }
+        }
+
+        // Days left = total - days passed
+        const daysPassed = Math.round((fillPercent / 100) * daysInMonth);
+        const daysLeft = daysInMonth - daysPassed;
+
+        // Create the circle
+        const circleDiv = document.createElement("div");
+        circleDiv.classList.add("month-circle");
+
+        // Water fill layer
+        const fillLayer = document.createElement("div");
+        fillLayer.classList.add("fill-layer");
+        fillLayer.style.height = fillPercent + "%";
+
+        // Month info
+        const infoDiv = document.createElement("div");
+        infoDiv.classList.add("month-info");
+        infoDiv.innerHTML = `
+          <h3 class="month-name">${monthNames[m]}</h3>
+          <div class="days-left">${daysLeft} days left</div>
+        `;
+
+        // Click => open second circle
+        circleDiv.addEventListener("click", () => {
+          openMonthDetail(m);
+        });
+
+        circleDiv.appendChild(fillLayer);
+        circleDiv.appendChild(infoDiv);
+        homeCircles.appendChild(circleDiv);
+      }
+    }
+
+    /************************************************************
+     * 2. Open/Close the second circle
+     ************************************************************/
+    function openMonthDetail(monthIndex) {
+      currentMonthIndex = monthIndex;
+
+      // Hide home circles
+      homeCircles.style.opacity = "0";
+      // Show overlay
+      overlay.classList.add("show");
+
+      // Title
+      monthDetailTitle.textContent = `${monthNames[monthIndex]} ${year}`;
+
+      // Load GOAL from localStorage
+      const goalKey = `goal-${year}-${monthIndex}`;
+      goalTextarea.value = localStorage.getItem(goalKey) || "";
+
+      // Build the calendar
+      buildCalendar(monthIndex);
+
+      // Show second circle
+      monthDetailCircle.classList.add("open");
+    }
+
+    function closeMonthDetail() {
+      monthDetailCircle.classList.remove("open");
+      overlay.classList.remove("show");
+      homeCircles.style.opacity = "1";
+      closeCommentCircle();
+    }
+
+    // Overlay click => close second circle
+    overlay.addEventListener("click", () => {
+      closeMonthDetail();
+    });
+    // Prevent second circle from closing if we click inside
+    monthDetailCircle.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+
+    // Save GOAL on change
+    goalTextarea.onchange = () => {
+      const goalKey = `goal-${year}-${currentMonthIndex}`;
+      localStorage.setItem(goalKey, goalTextarea.value);
+    };
+
+    /************************************************************
+     * 3. Build the calendar inside the second circle
+     ************************************************************/
+    function buildCalendar(monthIndex) {
+      calendarContainer.innerHTML = "";
+
+      // Day-of-week headings
+      const headingRow = [];
+      headingRow.push(`<div class="week-label-heading"></div>`); // empty for top-left
+      dayOfWeekNames.forEach(d => {
+        headingRow.push(`<div class="day-of-week-heading">${d}</div>`);
+      });
+      calendarContainer.insertAdjacentHTML("beforeend", headingRow.join(""));
+
+      const daysInMonth = new Date(year, monthIndex+1, 0).getDate();
+      // Monday-based calculation
+      const firstDay = new Date(year, monthIndex, 1).getDay(); // 0=Sunday
+      let startIndex = (firstDay + 6) % 7; // 0=Monday, 6=Sunday
+
+      let currentDay = 1;
+      let weekNumber = 1;
+      for (let row = 0; row < 6; row++) {
+        if (currentDay > daysInMonth) break;
+
+        // Week label
+        const weekLabelDiv = document.createElement("div");
+        const weekCommentKey = `weekcomment-${year}-${monthIndex}-${weekNumber}`;
+        const storedWeekComment = localStorage.getItem(weekCommentKey) || "";
+        const hasWeekComment = storedWeekComment.trim() !== "";
+        weekLabelDiv.classList.add("week-label");
+        if (hasWeekComment) {
+          weekLabelDiv.classList.add("has-comment");
+        }
+        weekLabelDiv.innerHTML = `Week ${weekNumber} <i class="fas fa-comment"></i>`;
+
+        // Clicking week label => open comment for the entire week
+        weekLabelDiv.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openWeekComment(weekNumber, weekLabelDiv);
+        });
+        calendarContainer.appendChild(weekLabelDiv);
+
+        // For each day of the week
+        for (let col = 0; col < 7; col++) {
+          if ((row === 0 && col < startIndex) || currentDay > daysInMonth) {
+            // Empty cell
+            const emptyCell = document.createElement("div");
+            emptyCell.style.width = "70px";
+            emptyCell.style.height = "70px";
+            calendarContainer.appendChild(emptyCell);
+          } else {
+            const daySquare = createDaySquare(monthIndex, currentDay);
+            calendarContainer.appendChild(daySquare);
+            currentDay++;
+          }
+        }
+        weekNumber++;
+      }
+    }
+
+    /************************************************************
+     * Create a day-square with separate boxes for:
+     *   - Day (link)
+     *   - Color
+     *   - Comment icon
+     ************************************************************/
+    function createDaySquare(monthIndex, dayNumber) {
+      const daySquare = document.createElement("div");
+      daySquare.classList.add("day-square");
+
+      // 1. Day box
+      const dayBox = document.createElement("div");
+      dayBox.classList.add("day-box");
+
+      const dayLink = document.createElement("a");
+      dayLink.classList.add("day-link");
+      dayLink.href = `day.html?month=${monthIndex}&day=${dayNumber}`;
+      dayLink.textContent = dayNumber;
+
+      dayBox.appendChild(dayLink);
+
+      // 2. Color box
+      const colorBox = document.createElement("div");
+      colorBox.classList.add("color-box");
+
+      const colorPicker = document.createElement("input");
+      colorPicker.type = "color";
+      colorPicker.classList.add("color-picker");
+
+      // load stored color
+      const colorKey = `planner-${year}-${monthIndex}-${dayNumber}-color`;
+      const storedColor = localStorage.getItem(colorKey);
+      if (storedColor) {
+        colorPicker.value = storedColor;
+        daySquare.style.backgroundColor = storedColor;
+      }
+
+      colorPicker.addEventListener("input", (e) => {
+        const newColor = e.target.value;
+        daySquare.style.backgroundColor = newColor;
+        localStorage.setItem(colorKey, newColor);
+      });
+      colorBox.appendChild(colorPicker);
+
+      // 3. Comment dot
+      const commentDot = document.createElement("div");
+      commentDot.classList.add("comment-dot");
+
+      const commentIcon = document.createElement("i");
+      commentIcon.classList.add("fas", "fa-comment");
+      commentDot.appendChild(commentIcon);
+
+      // load stored comment
+      const commentKey = `planner-${year}-${monthIndex}-${dayNumber}-comment`;
+      const storedComment = localStorage.getItem(commentKey) || "";
+      if (storedComment.trim() !== "") {
+        commentDot.classList.add("has-comment");
+      }
+
+      commentDot.addEventListener("click", (event) => {
+        event.stopPropagation();
+        openDayComment(monthIndex, dayNumber, commentDot);
+      });
+
+      // Assemble
+      daySquare.appendChild(dayBox);
+      daySquare.appendChild(colorBox);
+      daySquare.appendChild(commentDot);
+
+      return daySquare;
+    }
+
+    /************************************************************
+     * 4. Third Circle: Comment Panel (day or week)
+     ************************************************************/
+    function openDayComment(monthIndex, day, dotElement) {
+      currentCommentKey = `planner-${year}-${monthIndex}-${day}-comment`;
+      currentCommentIcon = dotElement;
+
+      const c = localStorage.getItem(currentCommentKey) || "";
+      commentTextarea.value = c;
+      commentHeader.textContent = `Comment for ${monthNames[monthIndex]} ${day}`;
+      openCommentCircle();
+    }
+
+    function openWeekComment(weekNumber, labelElement) {
+      currentCommentKey = `weekcomment-${year}-${currentMonthIndex}-${weekNumber}`;
+      currentCommentIcon = labelElement;
+
+      const c = localStorage.getItem(currentCommentKey) || "";
+      commentTextarea.value = c;
+      commentHeader.textContent = `Comment for Week ${weekNumber}`;
+      openCommentCircle();
+    }
+
+    function openCommentCircle() {
+      commentCircle.classList.add("open");
+    }
+    function closeCommentCircle() {
+      commentCircle.classList.remove("open");
+    }
+
+    // Save/Cancel in the comment circle
+    saveCommentBtn.addEventListener("click", () => {
+      if (!currentCommentKey) return;
+      const val = commentTextarea.value.trim();
+      localStorage.setItem(currentCommentKey, val);
+
+      // If comment not empty => "has-comment"
+      if (val !== "") {
+        currentCommentIcon.classList.add("has-comment");
+      } else {
+        currentCommentIcon.classList.remove("has-comment");
+      }
+      closeCommentCircle();
+    });
+    cancelCommentBtn.addEventListener("click", () => {
+      closeCommentCircle();
+    });
+
+    /************************************************************
+     * Initialize on page load
+     ************************************************************/
+    buildHomePageCircles();
+  </script>
+</body>
+</html>
